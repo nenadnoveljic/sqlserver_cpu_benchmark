@@ -4,19 +4,22 @@ These are the scripts for performing a CPU benchmark on a SQL Server database.
 
 PREPARATION
 
-The procedure sp_cpu_loop executes a simple loop. Therefore, you have to first execute the script create_sp_cpu_loop.sql before proceeding with the tests.
+PREPARATION
+
+1. Execute create_sp_cpu_loop.sql in the database.
+2. Configure the connect string in Config.psd1
 
 SINGLE TEST
 
 Typically, you would use Invoke-Load for executing a single test, like:
 
-Invoke-Load -Server Server\Instance -Concurrency 3
+Invoke-Load -Concurrency 3
 
 TEST SERIES
 
 But what's more interesting is to run a series of tests with a random load:
 
-Invoke-Random-Load -Server Server\Instance -MaxConcurrency 6 -iterations 1000 *> random_load.log
+Invoke-Random-Load -MaxConcurrency 6 -iterations 1000 *> random_load.log
 
 The command above runs 1000 tests with a random concurrency ranging from 1 to 6.
 
