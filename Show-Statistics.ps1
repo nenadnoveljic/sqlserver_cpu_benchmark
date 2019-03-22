@@ -4,7 +4,7 @@
 
 Usage: Show-Statistics -File file [ -Metric ... ]
 
-Version 1.0
+Version 2.1
 
 Performs analysis of Invoke-Random-Load output file. All of the metrics will 
 be displayed by default. However, the scope can be limited by the Metric 
@@ -14,7 +14,8 @@ parameter.
 
 param (
    [parameter(Mandatory=$true)][string]$File,
-   [string[]]$Metric = @( "Iterations/s" , "SOS waits(%)" , "CV" , "ratio max min" ) 
+   [string[]]$Metric = @( "Iterations/s" , "SOS waits(%)" , "CV" , ` 
+    "ratio max min" , "Average" ) 
 )
 
 Set-StrictMode -Version Latest

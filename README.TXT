@@ -4,20 +4,19 @@ These are the scripts for performing a CPU benchmark on a SQL Server database.
 
 PREPARATION
 
-1. Execute create_sp_cpu_loop.sql in the database.
-2. Configure the connect string in Config.psd1
+The procedure sp_cpu_loop executes a simple loop. Therefore, you have to first execute the script create_sp_cpu_loop.sql before proceeding with the tests.
 
 SINGLE TEST
 
 Typically, you would use Invoke-Load for executing a single test, like:
 
-Invoke-Load -Concurrency 3
+Invoke-Load -Server Server\Instance -Concurrency 3
 
 TEST SERIES
 
 But what's more interesting is to run a series of tests with a random load:
 
-Invoke-Random-Load -MaxConcurrency 6 -iterations 1000 *> random_load.log
+Invoke-Random-Load -Server Server\Instance -MaxConcurrency 6 -iterations 1000 *> random_load.log
 
 The command above runs 1000 tests with a random concurrency ranging from 1 to 6.
 
@@ -49,13 +48,10 @@ Calculated metrics are:
 - "CV": Coefficient of variation of the elapsed times od each session in a 
   single run
 - "ratio max min": max(elapsed time)/min(elapsed time) in a single run
+- "Average": average elapsed time per execution in a single run
 
 All of the metrics are calculated for a given load, where the load corresponds to the number of the concurrent sessions. For each metric an average and a maximum value are calculated per load. The column right from the maximum value contains the run id, which gives you a reference for zooming into the outliers in the log file.
 
 All of the metrics will be displayed by default. However, the scope can be limited by the Metric parameter:
 
 Show-Statistics -File random_load.log -Metric "CV","SOS waits(%)"
-
-USE CASES
-
-- Investigating SOS_SCHEDULER_YIELD waits during low CPU utilization: https://nenadnoveljic.com/blog/sos_scheduler_yield-waits-during-low-cpu-utilization/
