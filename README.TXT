@@ -4,8 +4,6 @@ These are the scripts for performing a CPU benchmark on a SQL Server database.
 
 PREPARATION
 
-PREPARATION
-
 1. Execute create_sp_cpu_loop.sql in the database.
 2. Configure the connect string in Config.psd1
 
