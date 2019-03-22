@@ -2,11 +2,12 @@
 
 (c) 2019 Nenad Noveljic All Rights Reserved
 
-Usage: Invoke-Load -Server Server\Instance -Concurrency n
+Usage: Invoke-Load -Concurrency n
 
-Version 1.0
+Version 2.0
 
-Prerequisites: sp_cpu_loop in the database
+Prerequisites: 
+    sp_cpu_loop in the database, configure connect string in Config.psd1
 
 It runs a sp_cpu_loop with n concurrent sessions and measures elapsed time, 
 SOS_SCHEDULER_YIELD wait time and CPU time on each scheduler
@@ -14,13 +15,15 @@ SOS_SCHEDULER_YIELD wait time and CPU time on each scheduler
 #>
 
 param (
-   [parameter(Mandatory=$true)][string]$Server,
+#   [parameter(Mandatory=$true)][string]$Server,
     [int]$Concurrency = 1
 )
 
-$parallel = $concurrency
-
 Set-StrictMode -Version Latest
+
+$ErrorActionPreference = "Stop"
+
+$parallel = $concurrency
 
 function ExecuteSelect 
 {
@@ -40,8 +43,15 @@ function ExecuteSelect
     $dataSet.Tables | Format-Table 
 }
 
+$ConfigFile = Import-LocalizedData -BaseDirectory . -FileName Config.psd1
+
 $SqlConnection = New-Object System.Data.SqlClient.SqlConnection
-$SqlConnection.ConnectionString = "Server=" + $server + ";Integrated Security=True"
+
+#$SqlConnection.ConnectionString = "Server=" + $server + ";Integrated Security=True"
+$ConnectString = $ConfigFile.ConnectString
+$SqlConnection.ConnectionString = $ConnectString
+
+
 $SQlConnection.Open()
 $SqlCmd = New-Object System.Data.SqlClient.SqlCommand
 $SqlCmd.Connection = $SqlConnection
@@ -63,18 +73,22 @@ $SqlCmd.ExecuteNonQuery() | Out-Null
 
 $LOOP_ITERATIONS = 10000000
 
-#$Input = [System.Tuple]::Create($server,$LOOP_ITERATIONS)
-
 For ( $i = 1 ; $i -le $parallel ; $i++ ) {
-    $Input = [System.Tuple]::Create($server, $LOOP_ITERATIONS, $i)
+    #$Input = [System.Tuple]::Create($server, $LOOP_ITERATIONS, $i)
+    $Input = [System.Tuple]::Create($ConnectString, $LOOP_ITERATIONS, $i)
 
     Start-Job -Name "SQL$i" -ArgumentList $Input -ScriptBlock { 
       $args[0] | Measure-Command { 
-        $server = $_.Item1
+        #$server = $_.Item1
+        $ConnectString = $_.Item1
+        
         $LOOP_ITERATIONS = $_.Item2
         $proc_id = $_.Item3
         $SqlConnection = New-Object System.Data.SqlClient.SqlConnection
-        $SqlConnection.ConnectionString = "Server=" + $server + ";Integrated Security=True"
+        
+        #$SqlConnection.ConnectionString = "Server=" + $server + ";Integrated Security=True"
+        $SqlConnection.ConnectionString = $ConnectString
+        
         $SQlConnection.Open()
         $SqlCmd = New-Object System.Data.SqlClient.SqlCommand
         $SqlCmd.Connection = $SqlConnection

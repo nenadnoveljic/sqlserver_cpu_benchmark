@@ -3,11 +3,13 @@
 (c) 2019 Nenad Noveljic All Rights Reserved
 
 Usage: 
+
 Invoke-Random-Load -Server Server\Instance -MaxConcurrency c -iterations i
 
-Version 1.0
+Version 2.0
 
-Prerequisites: sp_cpu_loop in the database
+Prerequisites: 
+    sp_cpu_loop in the database, configure connect string in Config.psd1
 
 It runs Invoke-Load i times. The concurrency of each execution is a random 
 number between 1 and c. The output can be processed by Show-Stats.
@@ -15,8 +17,8 @@ number between 1 and c. The output can be processed by Show-Stats.
 #>
 
 param (
-   [parameter(Mandatory=$true)][string]$server,
-   [int]$iterations = 1,
+   #[parameter(Mandatory=$true)][string]$server,
+   [int]$Iterations = 1,
    [int]$MaxConcurrency = 1
 )
 
