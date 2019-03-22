@@ -57,3 +57,7 @@ All of the metrics are calculated for a given load, where the load corresponds t
 All of the metrics will be displayed by default. However, the scope can be limited by the Metric parameter:
 
 Show-Statistics -File random_load.log -Metric "CV","SOS waits(%)"
+
+USE CASES
+
+- Investigating SOS_SCHEDULER_YIELD waits during low CPU utilization: https://nenadnoveljic.com/blog/sos_scheduler_yield-waits-during-low-cpu-utilization/
