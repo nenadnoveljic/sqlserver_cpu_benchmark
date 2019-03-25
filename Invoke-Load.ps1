@@ -4,7 +4,7 @@
 
 Usage: Invoke-Load -Concurrency n
 
-Version 2.2
+Version 2.3
 
 Prerequisites: 
     sp_cpu_loop in the database, configure connect string in Config.psd1
@@ -15,7 +15,8 @@ SOS_SCHEDULER_YIELD wait time and CPU time on each scheduler
 #>
 
 param (
-    [int]$Concurrency = 1
+    [int]$Concurrency = 1, 
+    [String]$ConfigFileName = "Config.psd1"
 )
 
 Set-StrictMode -Version Latest
@@ -42,11 +43,11 @@ function ExecuteSelect
     $dataSet.Tables | Format-Table 
 }
 
-$ConfigFile = Import-LocalizedData -BaseDirectory . -FileName Config.psd1
+#$ConfigFile = Import-LocalizedData -BaseDirectory . -FileName Config.psd1
+$ConfigFile = Import-LocalizedData -BaseDirectory . -FileName $ConfigFileName
 
 $SqlConnection = New-Object System.Data.SqlClient.SqlConnection
 
-#$SqlConnection.ConnectionString = "Server=" + $server + ";Integrated Security=True"
 $ConnectString = $ConfigFile.ConnectString
 $SqlConnection.ConnectionString = $ConnectString
 
