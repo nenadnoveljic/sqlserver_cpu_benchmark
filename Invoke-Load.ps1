@@ -4,7 +4,7 @@
 
 Usage: Invoke-Load -Concurrency n
 
-Version 2.1
+Version 2.2
 
 Prerequisites: 
     sp_cpu_loop in the database, configure connect string in Config.psd1
@@ -85,6 +85,8 @@ $SqlCmd.ExecuteNonQuery() | Out-Null
 
 $LOOP_ITERATIONS = 10000000
 
+Get-Job | Remove-Job | Out-Null
+
 For ( $i = 1 ; $i -le $parallel ; $i++ ) {
     $Input = [System.Tuple]::Create($ConnectString, $LOOP_ITERATIONS, $i)
 
@@ -163,7 +165,7 @@ $sql_os_waits =
                 total_wait_time_ms,
 		    ( a.signal_wait_time_ms - b.signal_wait_time_ms ) 
                 total_signal_wait_time_ms
-            from os_waits_after a join os_waits_after b 
+            from os_waits_after a join os_waits_before b 
                 on a.wait_type = b.wait_type
             where a.wait_type = 'SOS_SCHEDULER_YIELD'"
 ExecuteSelect -Connection $SqlConnection -Select $sql_os_waits
