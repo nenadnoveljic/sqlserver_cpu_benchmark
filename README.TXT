@@ -56,6 +56,6 @@ All of the metrics will be displayed by default. However, the scope can be limit
 
 Show-Statistics -File random_load.log -Metric "CV","SOS waits(%)"
 
-USE CASES
+CASES STUDIES
 - Microsoft Azure CPU Performance: https://nenadnoveljic.com/blog/microsoft-azure-sql-server-cpu-performance/
 - SOS_SCHEDULER_YIELD waits: https://nenadnoveljic.com/blog/sos_scheduler_yield-waits-during-low-cpu-utilization/
