@@ -4,7 +4,7 @@
 
 Usage: Invoke-Load -Concurrency n
 
-Version 2.3
+Version 2.4
 
 Prerequisites: 
     sp_cpu_loop in the database, configure connect string in Config.psd1
@@ -40,10 +40,9 @@ function ExecuteSelect
 
     $adapter.SelectCommand = $SqlCmd
     $adapter.Fill($dataSet) | Out-Null
-    $dataSet.Tables | Format-Table 
+    $dataSet.Tables | Format-Table 
 }
 
-#$ConfigFile = Import-LocalizedData -BaseDirectory . -FileName Config.psd1
 $ConfigFile = Import-LocalizedData -BaseDirectory . -FileName $ConfigFileName
 
 $SqlConnection = New-Object System.Data.SqlClient.SqlConnection
@@ -62,14 +61,6 @@ $SqlCmd.ExecuteNonQuery() | Out-Null
 $SqlCmd.CommandText = "drop table if exists os_schedulers_after"
 $SqlCmd.ExecuteNonQuery() | Out-Null
 
-<#
-$SqlCmd.CommandText = "drop table if exists os_waits"
-$SqlCmd.ExecuteNonQuery() | Out-Null
-
-$SqlCmd.CommandText = "DBCC SQLPERF('sys.dm_os_wait_stats', CLEAR)"
-$SqlCmd.ExecuteNonQuery() | Out-Null
-#>
-
 # Snapshot tables instead of CLEAR, because you might not have the provilege 
 # to clear, like for example in Azure
 $SqlCmd.CommandText = "drop table if exists os_waits_before"
@@ -84,19 +75,24 @@ $SqlCmd.ExecuteNonQuery() | Out-Null
 $SqlCmd.CommandText = "select * into os_waits_before from sys.dm_os_wait_stats"
 $SqlCmd.ExecuteNonQuery() | Out-Null
 
-$LOOP_ITERATIONS = 10000000
+$Load = $ConfigFile.Load
+
+#$LOOP_ITERATIONS = 10000000
 
 Get-Job | Remove-Job | Out-Null
 
 For ( $i = 1 ; $i -le $parallel ; $i++ ) {
-    $Input = [System.Tuple]::Create($ConnectString, $LOOP_ITERATIONS, $i)
+    #$Input = [System.Tuple]::Create($ConnectString, $LOOP_ITERATIONS, $i)
+    $Input = [System.Tuple]::Create($ConnectString, $Load, $i)
 
     Start-Job -Name "SQL$i" -ArgumentList $Input -ScriptBlock { 
       $args[0] | Measure-Command { 
-        #$server = $_.Item1
+
         $ConnectString = $_.Item1
         
-        $LOOP_ITERATIONS = $_.Item2
+        #$LOOP_ITERATIONS = $_.Item2
+        $Load = $_.Item2
+
         $proc_id = $_.Item3
         $SqlConnection = New-Object System.Data.SqlClient.SqlConnection
         
@@ -105,7 +101,9 @@ For ( $i = 1 ; $i -le $parallel ; $i++ ) {
         $SQlConnection.Open()
         $SqlCmd = New-Object System.Data.SqlClient.SqlCommand
         $SqlCmd.Connection = $SqlConnection
-        $SqlCmd.CommandText = "exec sp_cpu_loop @iterations = " + $LOOP_ITERATIONS
+        
+        #$SqlCmd.CommandText = "exec sp_cpu_loop @iterations = " + $LOOP_ITERATIONS
+        $SqlCmd.CommandText = $Load
 
         $SqlCmd.CommandTimeout = 1000
         $SqlCmd.ExecuteNonQuery() | Out-Null
@@ -134,10 +132,12 @@ $sigma = [math]::Sqrt( ($sqdiffs | Measure-Object -Average | select -ExpandPrope
 $sigma = [math]::Round($sigma, 3)
 Write-Host "Standard Deviation:" $sigma
 
+<#
 $iterations_per_s = $times_arr | foreach { $LOOP_ITERATIONS / $_ }
 $iterations_per_s_total = $iterations_per_s | Measure-Object -Sum | select -ExpandProperty Sum
 $iterations_per_s_total = [math]::Round($iterations_per_s_total, 0)
 Write-Host "Iterations/s:" $iterations_per_s_total
+#>
 
 $SqlCmd.CommandText = "select * into os_waits_after from sys.dm_os_wait_stats"
 $SqlCmd.ExecuteNonQuery() | Out-Null
@@ -182,4 +182,3 @@ $sql_os_scheduler =
 ExecuteSelect -Connection $SqlConnection -Select $sql_os_scheduler
 
 $SqlConnection.Close()
-

@@ -4,7 +4,7 @@
 
 Usage: Show-Statistics -File file [ -Metric ... ]
 
-Version 2.1
+Version 2.2
 
 Performs analysis of Invoke-Random-Load output file. All of the metrics will 
 be displayed by default. However, the scope can be limited by the Metric 
@@ -14,7 +14,8 @@ parameter.
 
 param (
    [parameter(Mandatory=$true)][string]$File,
-   [string[]]$Metric = @( "Iterations/s" , "SOS waits(%)" , "CV" , ` 
+   #[string[]]$Metric = @( "Iterations/s" , "SOS waits(%)" , "CV" , ` 
+   [string[]]$Metric = @( "SOS waits(%)" , "CV" , ` 
     "ratio max min" , "Average" ) 
 )
 
@@ -48,7 +49,8 @@ $recorded_max = @{}
 $content = Get-Content $file 
 
 $RECORDED_STATISTICS = ` 
-    "Iterations/s" , "SOS_SCHEDULER_YIELD" , "Standard Deviation" , `
+    #"Iterations/s" , "SOS_SCHEDULER_YIELD" , "Standard Deviation" , `
+    "SOS_SCHEDULER_YIELD" , "Standard Deviation" , `
     "Average" , "SOS waits(%)" , "CV" , "Maximum" , "Minimum" , "ratio max min"
     
 foreach($line in $content ) {
@@ -117,10 +119,8 @@ foreach($line in $content ) {
     }
 }
 
-#$AVG_STATISTICS = "Iterations/s" , "SOS waits(%)" , "CV" , "ratio max min"
-#$MAX_STATISTICS = "SOS waits(%)" , "CV"
 $MAX_STATISTICS = @()
-#$RECORDED_MAX_STATISTICS = "CV" , "SOS waits(%)" , "ratio max min"
+
 $AVG_STATISTICS = $Metric
 $RECORDED_MAX_STATISTICS = $Metric
 
